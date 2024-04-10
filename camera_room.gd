@@ -3,7 +3,7 @@ extends ReferenceRect
 class_name CameraRoom2D
 
 func _ready():
-	child_entered_tree.connect(update_configuration_warnings)
+	#child_entered_tree.connect(update_configuration_warnings)
 	update_configuration_warnings()
 	if Engine.is_editor_hint(): return
 	mouse_filter = Control.MOUSE_FILTER_IGNORE

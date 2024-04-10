@@ -20,5 +20,5 @@ func lookat(target):
 	if not p: return
 	target = p.to_local(target.global_position)
 	var tween = create_tween()
-	tween.tween_property(self, "position",target,alacrity)\
+	tween.tween_property(self, "position", target,alacrity)\
 			.set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_CUBIC)
