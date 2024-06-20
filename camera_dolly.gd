@@ -10,14 +10,19 @@ func _process(delta):
 	var blend = pow(0.5, delta * lerp_speed)
 	var cam_targets = get_tree().get_nodes_in_group("camera targets")
 	var target_position := Vector2.ZERO
+	var target_scale := 0.0
 	var total_weights := 0.0
 	for t in cam_targets:
 		var tg = t as CameraTarget2D
 		if not tg.active: continue
 		target_position += tg.global_position * tg.strength
 		total_weights += tg.strength
+		target_scale += tg.desired_scale
 	if total_weights > 0:
 		target_position /= total_weights
+		target_scale /= total_weights
+		if HeroCam2D.MAIN:
+			HeroCam2D.MAIN.target_zoom = Vector2(target_scale, target_scale)
 		global_position = lerp(target_position, global_position, blend)
 
 func _draw():

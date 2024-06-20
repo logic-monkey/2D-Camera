@@ -6,6 +6,7 @@ class_name CameraTarget2D
 @export var strength : float = 1.0
 @export var active :bool=true
 @export var visible_in_game : bool = false
+@export var desired_scale : float = 1.0
 
 func _ready():
 	if Engine.is_editor_hint(): return

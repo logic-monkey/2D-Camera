@@ -42,6 +42,7 @@ func _exit_tree():
 func _process(delta):
 	shake_strength = lerp(shake_strength, sway_strength, shake_decay * delta)
 	offset = get_noise_offset(delta)
+	interpolate_zoom(delta)
 	
 var noise_i :float= 0.0
 func get_noise_offset(delta: float)-> Vector2:
@@ -58,7 +59,8 @@ func shake(strength := 50.0, decay := 5.0):
 
 func still():
 	shake_strength = 0
-	
+
+var bounds_tween : Tween = null
 var bounds_first_time :bool= true
 func set_bounds(bounds: Rect2, time:=0.3):
 	if bounds_first_time or is_zero_approx(time):
@@ -66,22 +68,26 @@ func set_bounds(bounds: Rect2, time:=0.3):
 		reset_smoothing()
 		bounds_first_time = false
 		return
-	var tween = create_tween()
-	tween.tween_property(self, "bounds_rect", bounds, time)\
+	if bounds_tween and bounds_tween.is_running():
+		bounds_tween.stop()
+	bounds_tween = create_tween()
+	var intermediary_bounds : Rect2 = bounds_rect
+	intermediary_bounds.merge(bounds)
+	#bounds_tween.tween_property(self, "bounds_rect", intermediary_bounds, time/2)\
+			#.set_ease(Tween.EASE_IN_OUT)\
+			#.set_trans(Tween.TRANS_CUBIC)
+	bounds_rect = intermediary_bounds
+	bounds_tween.tween_property(self, "bounds_rect", bounds, time)\
 			.set_ease(Tween.EASE_IN_OUT)\
 			.set_trans(Tween.TRANS_CUBIC)
 
 var minimum_zoom : Vector2 = Vector2(1,1)
 var maximum_zoom : Vector2 = Vector2(1,1)
 var zoom_first_time:bool=true
-func set_zoom(new_zoom: Vector2, time:=0.3):
-	new_zoom = new_zoom.clamp(minimum_zoom,maximum_zoom)
-	if zoom_first_time or is_zero_approx(time):
-		zoom = new_zoom
-		zoom_first_time = false
-		return
-	var tween = create_tween()
-	tween.tween_property(self, "zoom",new_zoom,time)\
-			.set_ease(Tween.EASE_IN_OUT)\
-			.set_trans(Tween.TRANS_CUBIC)
-	
+var target_zoom : Vector2 = Vector2(1,1)
+var zoom_offset : Vector2 = Vector2(0,0)
+@export var zoom_lerp_speed : float = 10
+func interpolate_zoom(delta:float):
+	var blend = pow(0.5, delta * zoom_lerp_speed)
+	var new_zoom = clamp(target_zoom + zoom_offset, minimum_zoom, maximum_zoom)
+	zoom = lerp(new_zoom, zoom, blend)

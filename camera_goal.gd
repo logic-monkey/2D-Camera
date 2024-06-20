@@ -12,8 +12,11 @@ func _draw():
 	
 @export var alacrity :float= 0.25
 @export var targets : Dictionary
-func lookat(target):
+var old_target
+func lookat(target, skip_on_repeat:bool=true):
 	if not target in targets: return
+	if target == old_target and skip_on_repeat: return
+	old_target = target
 	target = get_node(targets[target]) as Node2D
 	if not target: return
 	var p = get_parent() as Node2D

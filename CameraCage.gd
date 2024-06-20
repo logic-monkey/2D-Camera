@@ -16,8 +16,9 @@ func _ready():
 
 func acquire_target():
 	var players = get_tree().get_nodes_in_group("player")
-	if players.size() >=1: target = players[0].get_node("CameraGoal2D") as Node2D
-	if target: body = target.get_parent()
+	if players.size() >=1: 
+		target = players[0].get_node("CameraGoal2D") as Node2D
+		if target: body = target.get_parent()
 	
 func catch_up():
 	if target: global_position = target.global_position
@@ -41,6 +42,13 @@ func _process(_delta):
 	elif not jump_free:
 		global_position.y = target.global_position.y
 		
+	var speed = body.velocity.length()
+	speed /= SharedPhysics.scale
+	speed = clamp(speed, zoom_speed_minimum, zoom_speed_maximum)
+	speed -= zoom_speed_minimum
+	speed /= (zoom_speed_maximum - zoom_speed_minimum)
+	cam_target.desired_scale = lerp(zoom_maximum, zoom_minimum, speed)
+	
 func _on_verticle_bumper_entered(area):
 	#if area.owner != body: return
 	jump_free = false
@@ -80,6 +88,13 @@ func _on_right_bumper_entered(area):
 		bumper_line_color = c
 		queue_redraw()		
 		
+@export_group("Camera Zoom", "zoom_")
+@export var zoom_minimum := 0.75
+@export var zoom_maximum := 2.0
+#@export var zoom_middle := 1.0
+@export var zoom_speed_minimum : float = 3
+@export var zoom_speed_maximum : float = 10
+#@export var zoom_speed_middle : float = 5
 
 func _draw():
 	if not Engine.is_editor_hint() and not bumper_draw_in_game: return
@@ -130,9 +145,11 @@ func create_cam_cage():
 		attach_bumper(box, _on_verticle_bumper_entered)
 	attach_bumper(r_left,_on_left_bumper_entered)
 	attach_bumper(r_right,_on_right_bumper_entered)
-	var target = CameraTarget2D.new()
-	target.visible_in_game = bumper_draw_in_game
-	add_child(target)
+	cam_target = CameraTarget2D.new()
+	cam_target.visible_in_game = bumper_draw_in_game
+	add_child(cam_target)
+
+var cam_target : CameraTarget2D
 
 func attach_bumper(rect:Rect2, alert:Callable):
 	var area = Area2D.new()
